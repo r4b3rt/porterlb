@@ -19,6 +19,7 @@ package v1alpha2
 import (
 	"bytes"
 	"encoding/json"
+
 	"github.com/golang/protobuf/jsonpb"
 	api "github.com/osrg/gobgp/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,6 +42,7 @@ type BgpConfStatus struct {
 // +kubebuilder:rbac:groups=network.kubesphere.io,resources=bgpconfs/status,verbs=get;update;patch
 
 // +kubebuilder:object:root=true
+// +kubebuilder:object:generate=true
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -55,19 +57,6 @@ type BgpConf struct {
 	Status BgpConfStatus `json:"status,omitempty"`
 }
 
-func (c BgpConfSpec) ConverToGoBgpGlabalConf() (*api.Global, error) {
-	c.AsPerRack = nil
-
-	jsonBytes, err := json.Marshal(c)
-	if err != nil {
-		return nil, err
-	}
-
-	var result api.Global
-	m := jsonpb.Unmarshaler{}
-	return &result, m.Unmarshal(bytes.NewReader(jsonBytes), &result)
-}
-
 // Configuration parameters relating to the global BGP router.
 type BgpConfSpec struct {
 	As               uint32            `json:"as,omitempty"`
@@ -78,6 +67,8 @@ type BgpConfSpec struct {
 	Families         []uint32          `json:"families,omitempty"`
 	UseMultiplePaths bool              `json:"useMultiplePaths,omitempty"`
 	GracefulRestart  *GracefulRestart  `json:"gracefulRestart,omitempty"`
+	// +optional
+	Policy string `json:"policy,omitempty"`
 }
 
 type GracefulRestart struct {
@@ -102,6 +93,19 @@ type BgpConfList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []BgpConf `json:"items"`
+}
+
+func (c BgpConfSpec) ToGoBgpGlobalConf() (*api.Global, error) {
+	c.AsPerRack = nil
+
+	jsonBytes, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+
+	var result api.Global
+	m := jsonpb.Unmarshaler{AllowUnknownFields: true}
+	return &result, m.Unmarshal(bytes.NewReader(jsonBytes), &result)
 }
 
 func init() {

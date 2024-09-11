@@ -1,9 +1,9 @@
 approvers:
-    - zheng1 #oncall
-    - rayzhou2017
+    - renyunkang #oncall
+    - chaunceyjiang
+    - zheng1
 
 reviewers:
-    - zheng1 #oncall
-    - duanjiong
-    - rayzhou2017
-    - feynmanzhou
+    - renyunkang #oncall
+    - chaunceyjiang
+    - zheng1
